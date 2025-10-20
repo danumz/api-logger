@@ -13,6 +13,17 @@ export const uploadDocument = asyncHandler(async (req: Request, res: Response) =
     throw new AppError('No document uploaded', 400);
   }
 
+  // Validate file path is within upload directory (security check)
+  const uploadDir = path.resolve(process.env.UPLOAD_DIR || './uploads');
+  const filePath = path.resolve(req.file.path);
+  if (!filePath.startsWith(uploadDir)) {
+    // Clean up uploaded file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    throw new AppError('Invalid file path', 400);
+  }
+
   // Validate file type
   if (!req.file.mimetype.includes('wordprocessingml') && !req.file.originalname.endsWith('.docx')) {
     // Clean up uploaded file

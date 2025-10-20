@@ -85,8 +85,14 @@ export class DocumentProcessor {
       line = line.trim();
       if (!line) continue;
 
-      // Remove HTML tags for text processing
-      const cleanLine = line.replace(/<[^>]*>/g, '').trim();
+      // Remove HTML tags for text processing - multiple passes to handle nested tags
+      let cleanLine = line;
+      let previousLine = '';
+      while (cleanLine !== previousLine && cleanLine.includes('<')) {
+        previousLine = cleanLine;
+        cleanLine = cleanLine.replace(/<[^>]*>/g, '');
+      }
+      cleanLine = cleanLine.trim();
 
       // Detect question markers (Q1, Q2, Question 1, etc.)
       const questionMatch = cleanLine.match(/^(?:Q|Question)\s*(\d+)[:\.\)]?\s*(.*)/i);
@@ -221,7 +227,14 @@ export class DocumentProcessor {
       if (headerMatch) {
         const thMatches = headerMatch[1].matchAll(/<th[^>]*>(.*?)<\/th>/gis);
         for (const match of thMatches) {
-          headers.push(match[1].replace(/<[^>]*>/g, '').trim());
+          let cleanText = match[1];
+          // Multiple passes to remove all HTML tags
+          let previousText = '';
+          while (cleanText !== previousText && cleanText.includes('<')) {
+            previousText = cleanText;
+            cleanText = cleanText.replace(/<[^>]*>/g, '');
+          }
+          headers.push(cleanText.trim());
         }
       }
 
@@ -234,7 +247,14 @@ export class DocumentProcessor {
         const tdMatches = trMatch[1].matchAll(/<td[^>]*>(.*?)<\/td>/gis);
         
         for (const tdMatch of tdMatches) {
-          row.push(tdMatch[1].replace(/<[^>]*>/g, '').trim());
+          let cleanText = tdMatch[1];
+          // Multiple passes to remove all HTML tags
+          let previousText = '';
+          while (cleanText !== previousText && cleanText.includes('<')) {
+            previousText = cleanText;
+            cleanText = cleanText.replace(/<[^>]*>/g, '');
+          }
+          row.push(cleanText.trim());
         }
         
         if (row.length > 0) {
