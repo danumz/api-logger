@@ -14,6 +14,8 @@ export const uploadDocument = asyncHandler(async (req: Request, res: Response) =
   }
 
   // Validate file path is within upload directory (security check)
+  // Note: req.file.path comes from multer's configured storage and is already sanitized
+  // This additional check ensures the resolved path stays within the upload directory
   const uploadDir = path.resolve(process.env.UPLOAD_DIR || './uploads');
   const filePath = path.resolve(req.file.path);
   if (!filePath.startsWith(uploadDir)) {
