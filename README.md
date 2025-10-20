@@ -6,6 +6,7 @@ A comprehensive question package upload system built with Express.js and Sequeli
 
 - **Question Package Management**: Create, read, update, and delete question packages
 - **Multiple Content Types**: Support for text, images, equations (LaTeX), tables, graphs, and mixed content
+- **Word Document Upload**: Automatically extract questions from .docx files with intelligent parsing
 - **Media Management**: Upload and manage media files (images, videos, documents)
 - **RESTful API**: Well-structured API endpoints with proper validation
 - **Database**: Sequelize ORM with support for SQLite, PostgreSQL, MySQL
@@ -17,6 +18,7 @@ A comprehensive question package upload system built with Express.js and Sequeli
 - **ORM**: Sequelize
 - **Database**: SQLite (default), PostgreSQL, MySQL
 - **File Upload**: Multer
+- **Document Processing**: Mammoth.js (Word document parsing)
 - **Validation**: Joi, express-validator
 - **Frontend**: Vanilla JavaScript, HTML, CSS
 
@@ -93,6 +95,11 @@ The server will start on `http://localhost:3000`
 - `GET /api/media/:id/download` - Download a media file
 - `DELETE /api/media/:id` - Delete a media file
 
+### Documents
+
+- `POST /api/documents/upload` - Upload a Word document to create a question package
+- `GET /api/documents/formats` - Get information about supported document formats
+
 ## API Usage Examples
 
 ### Create a Question Package
@@ -126,6 +133,22 @@ curl -X POST http://localhost:3000/api/media \
   -F "file=@image.png" \
   -F "questionId=1"
 ```
+
+### Upload Word Document
+
+```bash
+curl -X POST http://localhost:3000/api/documents/upload \
+  -F "document=@quiz.docx" \
+  -F "title=Math Quiz" \
+  -F "description=Questions from Chapter 5"
+```
+
+The document should be formatted with:
+- Question markers: `Q1:`, `Question 1:`, etc.
+- Answer markers: `Answer:`, `Correct Answer:`
+- Options: `A.`, `B.`, `C.`, `D.` or `1.`, `2.`, `3.`, `4.`
+- Difficulty: `Difficulty: easy|medium|hard`
+- Explanation: `Explanation:` followed by text
 
 ### Create Question with Image
 
@@ -192,6 +215,84 @@ curl -X POST http://localhost:3000/api/media \
           "borderColor": "blue"
         }
       ]
+    }
+  }
+}
+```
+
+## Word Document Upload
+
+The system supports automatic extraction of questions from Microsoft Word (.docx) documents. This feature uses Mammoth.js to parse Word documents and intelligently extract questions with their metadata.
+
+### Document Format Requirements
+
+Structure your Word document as follows:
+
+```
+Q1: What is the capital of France?
+A. London
+B. Berlin
+C. Paris
+D. Madrid
+
+Answer: C. Paris
+Explanation: Paris is the capital and largest city of France.
+Difficulty: easy
+
+Q2: Solve for x: 2x + 5 = 13
+A. x = 2
+B. x = 4
+C. x = 6
+D. x = 8
+
+Answer: B. x = 4
+Explanation: Subtract 5 from both sides: 2x = 8, then divide by 2: x = 4
+Difficulty: medium
+```
+
+### Supported Features
+
+- **Question Markers**: `Q1:`, `Q2:`, `Question 1:`, `Question 2:`, etc.
+- **Answer Markers**: `Answer:`, `Correct Answer:`
+- **Options**: Multiple choice options using `A.`, `B.`, `C.`, `D.` or `1.`, `2.`, `3.`, `4.`
+- **Difficulty Levels**: `Difficulty: easy`, `Difficulty: medium`, `Difficulty: hard`
+- **Explanations**: `Explanation:` followed by explanation text
+- **Equations**: Automatically detected when mathematical symbols or notation is present (e.g., x^2, ∫, ∑)
+- **Tables**: HTML tables are extracted and stored as structured data
+- **Images**: Framework for image extraction is in place (full implementation in progress)
+
+### Example Upload
+
+```bash
+curl -X POST http://localhost:3000/api/documents/upload \
+  -F "document=@math_quiz.docx" \
+  -F "title=Chapter 5 Math Quiz" \
+  -F "description=Algebra and geometry questions"
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "message": "Document processed successfully",
+  "data": {
+    "package": {
+      "id": 1,
+      "title": "Chapter 5 Math Quiz",
+      "description": "Algebra and geometry questions"
+    },
+    "questions": [
+      {
+        "id": 1,
+        "text": "Solve for x: 2x + 5 = 13",
+        "contentType": "equation",
+        "correctAnswer": "x = 4",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": {
+      "totalQuestions": 1,
+      "totalMediaFiles": 0
     }
   }
 }
