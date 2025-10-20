@@ -259,7 +259,7 @@ Difficulty: medium
 - **Explanations**: `Explanation:` followed by explanation text
 - **Equations**: Automatically detected when mathematical symbols or notation is present (e.g., x^2, ∫, ∑)
 - **Tables**: HTML tables are extracted and stored as structured data
-- **Images**: Images embedded in the document are extracted and saved (future enhancement)
+- **Images**: Framework for image extraction is in place (full implementation in progress)
 
 ### Example Upload
 
