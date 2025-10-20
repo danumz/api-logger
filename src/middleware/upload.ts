@@ -39,9 +39,14 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
     'video/webm',
     'audio/mpeg',
     'audio/wav',
+    'application/octet-stream', // Some systems report .docx as octet-stream
   ];
 
-  if (allowedMimes.includes(file.mimetype)) {
+  // Also check file extension for .docx files
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx', '.mp4', '.webm', '.mp3', '.wav'];
+
+  if (allowedMimes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error(`File type not allowed: ${file.mimetype}`));

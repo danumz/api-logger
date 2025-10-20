@@ -49,6 +49,7 @@ app.get('/', (req: Request, res: Response) => {
       questionPackages: '/api/question-packages',
       questions: '/api/questions',
       media: '/api/media',
+      documents: '/api/documents',
       health: '/health',
       frontend: '/frontend',
     },
